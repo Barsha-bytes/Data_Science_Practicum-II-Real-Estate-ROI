@@ -2,7 +2,7 @@
 
 **Author:** Barsha Kakshapati  
 **Institution:** Regis University | M.S. Data Science  
-**Status:** Master's Practicum II (Final Project)
+**Status:** Data Practicum II (Final Project)
 
 ## Project Overview
 This practicum develops a machine learning framework to predict 3-year Return on Investment (ROI) for residential real estate in Colorado. By synthesizing longitudinal data from Zillow, the U.S. Census Bureau, and the National Center for Education Statistics (NCES), the study moves beyond historical pricing to identify "safety floors"—community infrastructure metrics that stabilize property values during market volatility.
