@@ -18,5 +18,4 @@ This practicum develops a machine learning framework to predict 3-year Return on
 
 ## Installation & Usage
 1. Clone the repo: (https://github.com/Barsha-bytes/Data_Science_Practicum-II-Real-Estate-ROI)
-2. Install dependencies: `pip install -r requirements.txt`
-3. Run the analysis: `jupyter notebook notebooks/main_analysis.ipynb`
+
