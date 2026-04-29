@@ -1,0 +1,101 @@
+\documentclass[journal]{IEEEtran}
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{graphicx}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{url}
+
+% 1. AUTOMATIC ROMAN NUMERALS (FIXES THE "I." ISSUE)
+\newcounter{sectioncount}
+\titleformat{\section}{\large\bfseries\uppercase}{}{0em}{\stepcounter{sectioncount}\Roman{sectioncount}. \hspace{0.5em}}
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{A. \hspace{0.5em}}
+
+\begin{document}
+
+% 2. TITLE BLOCK
+\begin{center}
+    \LARGE \textbf{Multi-Factor ROI Optimization: \\ A Gradient-Robust Approach to Colorado Real Estate Dynamics} \\
+    \vspace{1.5em}
+    \large \textbf{Barsha Kakshapati} \\
+    \normalsize Master of Science in Data Science $|$ Regis University \\
+    \normalsize Denver, CO, USA $|$ bkakshapati@regis.edu \\
+    \vspace{2.5em}
+\end{center}
+
+% 3. ABSTRACT
+\begin{abstract}
+This practicum addresses the challenge of predicting 3-year Return on Investment (ROI) in the Colorado residential housing market. By synthesizing longitudinal data from Zillow, the U.S. Census Bureau, and the NCES, the study evaluates the non-linear correlation between community infrastructure and capital appreciation. A Random Forest Regressor was trained on 25,907 entries, achieving an $R^2$ of 0.85 and a Mean Absolute Error (MAE) of 7.24\%. Validation on Frederick, CO, confirms that high school density provides a protective safety floor, allowing for data-driven risk mitigation.
+\end{abstract}
+
+\section{Introduction/Background}
+The Colorado real estate market has seen significant appreciation, yet remains susceptible to localized volatility that traditional models fail to capture. This research moves beyond standard univariate price forecasting by integrating socio-economic stabilizers. The motivation is to provide a "forward-looking windshield" for investors, moving away from a reliance on historical price trends which often ignore the underlying community infrastructure that maintains value during market corrections.
+
+\section{Problem Statement}
+Real estate valuation currently suffers from "univariate bias," where future gains are predicted solely on past movement. This fails to account for infrastructure density, which serves as a stabilizing force. This project aims to quantify the relationship between community features and ROI to create a standardized risk-management framework that protects investor capital.
+
+\section{Methodology/Proposed Approach}
+The project utilizes a Random Forest Regressor, an ensemble learning method that aggregates 1,000 decision trees to find complex patterns. This architecture was selected over Linear Regression because real estate drivers—like the relationship between income and school quality—are rarely linear. By using an ensemble approach, we reduce the risk of overfitting while gaining deep insights into "Feature Importance."
+
+\section{Data Analysis and Visualization}
+\begin{center}
+    \includegraphics[width=0.85\textwidth]{heatmap.png}
+    \captionof{figure}{Correlation Heatmap: Logic check showing 0.67 link between income and price.}
+\end{center}
+\textbf{Technical Analysis:} Figure 1 confirms the "Logic Engine" of the study. A strong 0.67 Pearson correlation validates that neighborhood wealth is the primary driver of market entry costs. However, the lack of correlation with ROI justifies the use of non-linear machine learning to identify hidden profit signals.
+
+\begin{center}
+    \includegraphics[width=0.85\textwidth]{scatterplot.png}
+    \captionof{figure}{ROI Scatterplot: Demonstrating the "Profit Mystery" and lack of correlation.}
+\end{center}
+\textbf{Technical Analysis:} Figure 2 visualizes the stochastic distribution of returns. This "Profit Mystery" proves that high-income zip codes do not inherently guarantee high returns, suggesting that profit is driven by infrastructure growth rather than existing wealth.
+
+\section{Model Performance}
+\begin{center}
+    \includegraphics[width=0.85\textwidth]{Average_Model_Error.png}
+    \captionof{figure}{Model Accuracy and Error Metrics.}
+\end{center}
+\textbf{Technical Analysis:} Figure 3 highlights the 7.24\% MAE. This serves as our "Signal-to-Noise" floor; any investment with a predicted ROI lower than 7.24\% is statistically indistinguishable from a random loss.
+
+\section{Feature Importance: The Safety Floor}
+\begin{center}
+    \includegraphics[width=0.85\textwidth]{Clean_feature_importance.png}
+    \captionof{figure}{Feature Importance Breakdown: Demonstrating that schools are a significant stabilizer of property value.}
+\end{center}
+\textbf{Technical Analysis:} Figure 4 reveals the "Safety Floor" effect. While Median Income (36\%) sets price levels, School Density (19.4\%) is the primary stabilizer that prevents price collapses during economic shifts.
+
+\section{Conclusion and Recommendation}
+The model was stress-tested on Frederick, CO, yielding a predicted ROI of 5.01\%. 
+
+\begin{center}
+    \includegraphics[width=0.85\textwidth]{Frederick_stress_test.png}
+    \captionof{figure}{Frederick Validation Study: Predicted ROI vs. Error Margin.}
+\end{center}
+
+\textbf{Verdict: CAUTION.} Since the 5.01\% ROI is lower than our 7.24\% MAE, the model issues a caution verdict. This demonstrates the project's success in moving from speculative guessing to disciplined, data-driven risk management.
+
+\newpage
+% 4. FINAL REFERENCE FIX (FORCES SAME LINE AND INDENT)
+\section*{REFERENCES}
+\addcontentsline{toc}{section}{References}
+\begin{enumerate}[label={[\arabic*]}, leftmargin=3.5em, labelsep=1em, itemsep=2ex]
+
+    \item Zillow Research. "Zillow Home Value Index (ZHVI) Time Series: Residential Housing Market Analysis for Colorado Regions," 2024. [Online]. Available: \url{https://www.zillow.com/research/data/}
+    
+    \item U.S. Census Bureau. "American Community Survey (ACS) 5-Year Estimates: Median Household Income (Table B19013)," 2024. [Online]. Available: \url{https://data.census.gov/}
+    
+    \item National Center for Education Statistics (NCES). "Common Core of Data (CCD): Public School Universe Information System," 2024. [Online]. Available: \url{https://nces.ed.gov/ccd/}
+    
+    \item L. Breiman. "Random Forests," \textit{Machine Learning}, vol. 45, no. 1, pp. 5-32, Oct. 2001. [Online]. Available: \url{https://doi.org/10.1023/A:1010933404324}
+    
+    \item T. Hastie, R. Tibshirani, and J. Friedman. \textit{The Elements of Statistical Learning}, 2nd ed. New York, NY: Springer, 2009.
+    
+    \item F. Pedregosa et al., "Scikit-learn: Machine Learning in Python," \textit{Journal of Machine Learning Research}, vol. 12, pp. 2825-2830, 2011.
+
+\end{enumerate}
+
+\end{document}
