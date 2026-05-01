@@ -1,20 +1,60 @@
-\newpage
-\section*{References}
-\addcontentsline{toc}{section}{References}
-
-% This environment creates the hanging indent and numbered list
-\begin{enumerate}[label={[\arabic*]}, leftmargin=2.5em, itemsep=1.5ex]
-
-    \item Zillow Research. "Zillow Home Value Index (ZHVI) Time Series: Residential Housing Market Analysis for Colorado Regions," 2024. [Online]. Available: \url{https://www.zillow.com/research/data/}
-    
-    \item U.S. Census Bureau. "American Community Survey (ACS) -Year Estimates: Median Household Income in the Past 12 Months (Table B19013)," 2024. [Online]. Available: \url{https://data.census.gov/}
-    
-    \item National Center for Education Statistics (NCES). "Common Core of Data (CCD): Public School Universe Information System," 2024. [Online]. Available: \url{https://nces.ed.gov/ccd/elsi/}
-    
-    \item L. Breiman. "Random Forests," \textit{Machine Learning}, vol. 45, no. 1, pp. 5-32, Oct. 2001. [Online]. Available: \url{https://doi.org/10.1023/A:1010933404324}
-    
-    \item T. Hastie, R. Tibshirani, and J. Friedman. \textit{The Elements of Statistical Learning: Data Mining, Inference, and Prediction}, 2nd ed. New York, NY: Springer, 2009.
-    
-    \item F. Pedregosa et al., "Scikit-learn: Machine Learning in Python," \textit{Journal of Machine Learning Research}, vol. 12, pp. 2825-2830, 2011.
-
-\end{enumerate}
+@misc{zillow2024,
+  author       = {{Zillow Research}},
+  title        = {{Zillow Home Value Index (ZHVI) Time Series}},
+  year         = {2024},
+  howpublished = {\url{https://www.zillow.com/research/data/}},
+  note         = {Accessed: 2024}
+}
+ 
+@misc{census2024,
+  author       = {{U.S. Census Bureau}},
+  title        = {{ACS 5-Year Estimates: Median Household Income (Table B19013)}},
+  year         = {2024},
+  howpublished = {\url{https://data.census.gov}},
+  note         = {Accessed: 2024}
+}
+ 
+@misc{nces2024,
+  author       = {{National Center for Education Statistics (NCES)}},
+  title        = {{Common Core of Data: Public School Universe}},
+  year         = {2024},
+  howpublished = {\url{https://nces.ed.gov/ccd/}},
+  note         = {Accessed: 2024}
+}
+ 
+@article{breiman2001,
+  author    = {Breiman, Leo},
+  title     = {Random Forests},
+  journal   = {Machine Learning},
+  year      = {2001},
+  volume    = {45},
+  number    = {1},
+  pages     = {5--32},
+  doi       = {10.1023/A:1010933404324},
+  publisher = {Springer}
+}
+ 
+@book{hastie2009,
+  author    = {Hastie, Trevor and Tibshirani, Robert and Friedman, Jerome},
+  title     = {The Elements of Statistical Learning: Data Mining, Inference, and Prediction},
+  edition   = {2nd},
+  year      = {2009},
+  publisher = {Springer},
+  address   = {New York, NY},
+  doi       = {10.1007/978-0-387-84858-7}
+}
+ 
+@article{pedregosa2011,
+  author    = {Pedregosa, Fabian and Varoquaux, Ga{\"e}l and Gramfort, Alexandre
+               and Michel, Vincent and Thirion, Bertrand and Grisel, Olivier
+               and Blondel, Mathieu and Prettenhofer, Peter and Weiss, Ron
+               and Dubourg, Vincent and Vanderplas, Jake and Passos, Alexandre
+               and Cournapeau, David and Brucher, Matthieu and Perrot, Matthieu
+               and Duchesnay, {\'E}douard},
+  title     = {Scikit-learn: Machine Learning in {Python}},
+  journal   = {Journal of Machine Learning Research},
+  year      = {2011},
+  volume    = {12},
+  pages     = {2825--2830}
+}
+ 
