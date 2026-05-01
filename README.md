@@ -1,5 +1,5 @@
 Predicting Real Estate ROI: Colorado Housing Study
-> A machine learning model that predicts 3-year return on investment for Colorado zip codes using property price, household income, and school density.
+A machine learning model that predicts 3-year return on investment for Colorado zip codes using property price, household income, and school density.
 Barsha Kakshapati · MS Data Science · Regis University · Denver, CO · bkakshapati@regis.edu
 ---
 Key Results
@@ -52,7 +52,7 @@ Negative ROI (< 0%)	~2,500	~10%	⚠️ Underrepresented — loss predictions les
 Low ROI (0–5%)	~4,000	~15%	Acceptable
 Solid ROI (5–15%)	~12,000	~46%	✅ Well represented
 High ROI (> 15%)	~7,400	~29%	✅ Well represented
-No data augmentation was required. The distribution is approximately normal (bell-shaped), with solid and high ROI tiers comprising 75% of the dataset.
+No data augmentation was required. The distribution is approximately normal, with solid and high ROI tiers comprising 75% of the dataset.
 ---
 Model
 Algorithm
@@ -70,7 +70,7 @@ Max tree depth	None, 10, 20, 30	None (unlimited)
 Min samples to split	2, 5, 10	2
 Min samples per leaf	1, 2, 4	1
 Features per split	sqrt, log2, all	sqrt
-Tuning reduced cross-validated MAE from ~7.5% (default) to ~7.2% — a meaningful improvement.
+Tuning reduced cross-validated MAE from ~7.5% (default) to ~7.2%.
 ---
 Results
 Performance Metrics
@@ -107,30 +107,30 @@ Scenario	Income	Schools	Price	Predicted ROI	Verdict
 Wealthy suburb	$150,000	2	$800,000	13.55%	✅ Solid
 School-dense hub	$75,000	8	$400,000	4.69%	⚠️ Caution
 Frederick, CO (real)	$75,000	12	$142,300	5.01%	⚠️ Caution
-Why is Frederick flagged as caution despite 12 schools?
-Frederick's predicted ROI of 5.01% is lower than the model's error margin of 7.24%. This means the real return could be anywhere from −2.2% to +12.3% — the prediction cannot be confidently distinguished from noise. A data-driven investor should wait for stronger signals before purchasing here.
+Why is Frederick flagged despite 12 schools?
+Frederick's predicted ROI of 5.01% is lower than the model's error margin of 7.24%. The real return could be anywhere from −2.2% to +12.3% — the prediction cannot be confidently distinguished from noise. A data-driven investor should wait for stronger signals.
 ---
 Investment Verdict Tool
-A simple function takes three inputs about any zip code and returns a plain-English verdict:
+Enter three numbers about any zip code to get a plain-English verdict:
 Input	Example
 Median household income	$85,000
 School count	4
 Current home price	$420,000
 → Predicted ROI	~12.4%
 → Verdict	✅ Solid Investment
-Verdict Thresholds
+Verdict thresholds:
 Predicted ROI	Verdict
 > 15%	✅ Hidden Gem
 5% – 15%	✅ Solid Investment
 < 5%	⚠️ Proceed with Caution
 ---
 Conclusions
-Price is king (43.8%) — entry price is the strongest predictor of growth trajectory, but high price alone does not guarantee high ROI.
+Price is king (43.8%) — entry price is the strongest predictor of growth, but high price alone does not guarantee high ROI.
 Income stabilises value (36.8%) — wealthy neighbourhoods show more consistent appreciation over time.
 Schools are a safety floor (19.4%) — they don't guarantee high returns, but high school density significantly reduces collapse risk.
 The 7.24% error margin is a tool, not a flaw — it protects investors from overconfident decisions on borderline zip codes.
-Hyperparameter tuning reduced MAE by ~0.3% — modest but meaningful, showing optimisation is worthwhile.
-Cross-validation confirmed consistency — MAE was stable across all 5 folds (7.0–7.4%), proving the model generalises reliably.
+Hyperparameter tuning reduced MAE by ~0.3% — modest but meaningful.
+Cross-validation confirmed consistency — MAE was stable across all 5 folds (7.0–7.4%).
 > *This model moves real estate investing from gut feeling to data science. It does not replace local knowledge — but it gives any investor a rigorous, transparent starting point before making a major financial decision.*
 ---
 References
