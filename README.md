@@ -1,232 +1,428 @@
-# Predicting Real Estate ROI: Colorado Housing Study
+# 🏠 Predicting Real Estate ROI Using Socioeconomic, Educational & Interest Rate Data
+### A Multi-Window Historical Analysis Across 4 Economic Eras (2019–2026)
 
-A machine learning model that predicts 3-year return on investment for Colorado zip codes using property price, household income, and school density.
-
-**Barsha Kakshapati** · MS Data Science · Regis University · Denver, CO · [bkakshapati@regis.edu](mailto:bkakshapati@regis.edu)
-
----
-
-## Key Results
-
-| Metric | Value |
-| --- | --- |
-| Zip codes analysed | 25,907 |
-| Data sources merged | 3 |
-| Model accuracy (R²) | 0.85 |
-| Average error (MAE) | 7.24% |
-| Top driver | Current price (43.8%) |
+> **Barsha Kakshapati** | MS Data Science | Regis University  
+> **Course:** Data Science Practicum II | **Submitted:** June 2026
 
 ---
 
-## Overview
+## 📋 Table of Contents
 
-When evaluating a home as an investment, most buyers look only at current price trends. This project asks a smarter question: can we predict future growth by analysing the *neighbourhood itself* — specifically household income and school density?
-
-Using a Random Forest Regressor trained on 25,907 zip codes, the model explains **85% of the variation in 3-year ROI** across Colorado. It was then validated against a real city — Frederick, CO — that the model had never seen during training.
-
----
-
-## Research Questions
-
-1. **Primary** — Can income + school density predict 3-year ROI better than price alone?
-2. **Secondary** — Which factor matters more: income or school count?
-3. **Validation** — Does the model generalise to a real city it has never seen?
-
----
-
-## Data Sources
-
-| Source | Contents | Usage |
-| --- | --- | --- |
-| [Zillow Research](https://www.zillow.com/research/data/) (2023–2026) | Home prices by U.S. zip code | Calculated 3-year ROI |
-| [U.S. Census Bureau](https://data.census.gov) | Median household income by zip code | Matched to each Zillow zip code |
-| [NCES Common Core of Data](https://nces.ed.gov/ccd/) | Every public school location in the U.S. | Counted schools per city (school density) |
-
-**Merging challenge:** Each source uses a different geographic key — zip codes, GEO_ID codes, and city+state strings. Custom normalisation code standardised all zip codes to 5-digit strings and matched city names via uppercase trimming. After cleaning, the three datasets joined into a master table of **25,907 rows**.
+1. [Project Overview](#-project-overview)
+2. [Key Finding](#-key-finding)
+3. [Dataset](#-dataset)
+4. [Four Historical Windows](#-four-historical-windows)
+5. [Features Used](#-features-used)
+6. [Model Results](#-model-results)
+7. [Hyperparameter Tuning](#-hyperparameter-tuning)
+8. [Cross-Validation](#-cross-validation)
+9. [Feature Importance](#-feature-importance)
+10. [Data Imbalance](#-data-imbalance)
+11. [Real-World Validation — Frederick CO](#-real-world-validation--frederick-co)
+12. [ROI Tier Justification](#-roi-tier-justification)
+13. [How to Run](#-how-to-run)
+14. [Project Structure](#-project-structure)
+15. [Instructor Feedback Addressed](#-instructor-feedback-addressed)
+16. [Limitations](#-limitations)
+17. [Future Work](#-future-work)
+18. [References](#-references)
 
 ---
 
-## Exploratory Analysis
+## 🎯 Project Overview
 
-### Correlation Matrix
+This project predicts **3-year residential real estate ROI** using machine learning across 4,782 U.S. zip codes spanning 6 states (CA, TX, FL, WA, CO, AZ).
 
-| | Median Income | School Count | ROI | Current Price |
-| --- | :---: | :---: | :---: | :---: |
-| **Median Income** | 1.00 | 0.02 | 0.16 | **0.67 ★** |
-| **School Count** | 0.02 | 1.00 | −0.17 | 0.14 |
-| **ROI** | 0.16 | −0.17 | 1.00 | 0.05 |
-| **Current Price** | **0.67 ★** | 0.14 | 0.05 | 1.00 |
+The original project studied a **single time period (2023–2026)**. Instructor feedback led to a fundamental redesign using **4 historical rolling windows** — this one change improved R² by **332%** (from 0.1625 to 0.7025) by allowing mortgage interest rates to vary across rows and function as a genuine predictive feature.
 
-★ Strongest relationship: income ↔ price (0.67). ROI is weakly correlated with all individual variables — this is the *Profit Mystery* that justifies using machine learning rather than a simple linear model.
-
-### Distribution Summary
-
-| Variable | Mean | Median | Std Dev | Skew |
-| --- | --- | --- | --- | --- |
-| ROI (%) | ~14% | ~13% | ~12% | Low — roughly normal |
-| Median Income | $75,000 | $69,000 | $28,000 | Moderate — acceptable |
-| Current Price | $420K | $370K | $200K | High — right-skewed |
-
-### Outlier Detection (IQR Method)
-
-| Variable | Outliers Found | % of Data | Action |
-| --- | :---: | :---: | --- |
-| ROI (%) | ~1,200 | ~4.6% | Kept — extreme returns are real market events |
-| Median Income | ~800 | ~3.1% | Kept — high-income zip codes are valid data |
-| Current Price | ~1,500 | ~5.8% | Kept — luxury markets are part of the study |
+### Research Questions
+1. Do mortgage interest rates dominate neighbourhood factors in predicting 3-year ROI?
+2. How do socioeconomic and educational features perform when interest rates are included?
+3. Does the model generalise to unseen zip codes in different rate environments?
 
 ---
 
-## Class Balance Assessment
+## 💡 Key Finding
 
-This is a regression task (predicting a continuous ROI value), so traditional classification imbalance tools like SMOTE do not apply. However, the ROI range was audited for coverage:
+> **Mortgage Rate explains 65.6% of why some zip codes outperform others across 4 economic eras.**  
+> The same zip code returns 39% ROI when the rate is 3.11% and less than 1% when the rate is 6.81%.
 
-| ROI Tier | Approx. Zip Codes | Share | Status |
-| --- | :---: | :---: | --- |
-| Negative ROI (< 0%) | ~2,500 | ~10% | ⚠️ Underrepresented — loss predictions less reliable |
-| Low ROI (0–5%) | ~4,000 | ~15% | Acceptable |
-| Solid ROI (5–15%) | ~12,000 | ~46% | ✅ Well represented |
-| High ROI (> 15%) | ~7,400 | ~29% | ✅ Well represented |
+| Scenario | Mortgage Rate | Mean ROI |
+|---|---|---|
+| Pre-COVID 2019→2022 | 3.94% | **39.46%** |
+| COVID Boom 2020→2023 | 3.11% | **40.83%** |
+| Low-Rate Peak 2021→2024 | 2.96% | **28.15%** |
+| High-Rate Era 2023→2026 | 6.81% | **0.91%** |
 
-No data augmentation was required. The distribution is approximately normal, with solid and high ROI tiers comprising 75% of the dataset.
-
----
-
-## Model
-
-### Algorithm
-
-**Random Forest Regressor** — an ensemble of 1,000 decision trees whose predictions are averaged. This reduces the risk of any single tree overfitting and produces robust, interpretable feature importances.
-
-### Training Pipeline
-
-1. **Split** — 80% training (21,111 rows), 20% held-out test (5,278 rows)
-2. **Fit** — 1,000 trees learn rules from the training set
-3. **Aggregate** — tree predictions are averaged into a final ROI estimate
-4. **Evaluate** — predictions are compared against the unseen test set
-
-### Hyperparameter Tuning
-
-`RandomizedSearchCV` was used to search 20 combinations across the following space:
-
-| Setting | Options Tried | Winner |
-| --- | --- | --- |
-| Number of trees | 100, 200, 500, 1000 | **500** |
-| Max tree depth | None, 10, 20, 30 | **None (unlimited)** |
-| Min samples to split | 2, 5, 10 | **2** |
-| Min samples per leaf | 1, 2, 4 | **1** |
-| Features per split | sqrt, log2, all | **sqrt** |
-
-Tuning reduced cross-validated MAE from ~7.5% (default) to **~7.2%**.
+**Correlation: Mortgage Rate vs ROI = -0.687** (was 0.000 in single-window — multi-window unlocked this signal)
 
 ---
 
-## Results
+## 📊 Dataset
 
-### Performance Metrics
+| Property | Value |
+|---|---|
+| Total observations | **20,608** (4 windows × 5,152 rows each) |
+| Unique zip codes | **4,782** |
+| States | CA (1,511) · TX (1,304) · FL (914) · WA (473) · CO (390) · AZ (288) |
+| Mortgage rate range | 2.96% to 6.81% (std = 1.55 — non-zero = usable as feature) |
+| Train / Test split | 80% / 20% — by zip code using GroupShuffleSplit |
+| Training rows | 16,464 (3,825 zip codes) |
+| Test rows | 4,144 (957 zip codes) |
+| Target variable | ROI (%) — range approx. −30% to +80% |
 
-| Metric | Value | Meaning |
-| --- | --- | --- |
-| R² | 0.85 | 85% of ROI variation explained by the three features |
-| MAE | 7.24% | Average prediction is within ±7.24 percentage points |
+### Data Sources
 
-Any predicted ROI below 7.24% falls inside the error margin and should be treated with caution.
-
-### 5-Fold Cross-Validation
-
-| Fold | MAE | R² |
-| --- | --- | --- |
-| 1 | ~7.1% | 0.84 |
-| 2 | ~7.3% | 0.85 |
-| 3 | ~7.0% | 0.86 |
-| 4 | ~7.4% | 0.84 |
-| 5 | ~7.2% | 0.85 |
-| **Average** | **7.2% ± 0.1%** | **0.848 ± 0.007** |
-
-Consistent results across all folds confirm the model generalises reliably and is not overfitting to a single data split.
-
-### Sample Predictions vs. Reality
-
-| Zip Code | Actual ROI | Predicted ROI | Error | Verdict |
-| --- | :---: | :---: | :---: | --- |
-| Test #1 | 22.3% | 20.8% | 1.5% | ✅ Excellent |
-| Test #2 | 8.1% | 10.2% | 2.1% | ✅ Good |
-| Test #3 | 14.7% | 12.9% | 1.8% | ✅ Good |
-| Test #4 | 3.2% | 5.8% | 2.6% | ⚠️ Caution zone |
-| Test #5 | 31.0% | 25.1% | 5.9% | ✅ Acceptable |
+| Source | Coverage | Contents | Role |
+|---|---|---|---|
+| [Zillow ZHVI](https://www.zillow.com/research/data/) | 2019–2026 | Monthly home prices by zip code | Calculate 3-year ROI |
+| [U.S. Census ACS](https://data.census.gov) | 2024 5-Year | Median household income | Socioeconomic feature |
+| [NCES ELSI](https://nces.ed.gov/ccd/) | 2024–25 | Public school locations nationwide | School density feature |
+| [FRED / Freddie Mac PMMS](https://www.freddiemac.com/pmms) | 2019–2026 | 30-year fixed mortgage rate by year | **NEW — rate feature** |
 
 ---
 
-## Feature Importance
+## 📅 Four Historical Windows
+
+```
+Window 1: Pre-COVID    2019 → 2022  |  Entry Rate: 3.94%  |  Mean ROI: 39.46%
+Window 2: COVID Boom   2020 → 2023  |  Entry Rate: 3.11%  |  Mean ROI: 40.83%
+Window 3: Low-Rate     2021 → 2024  |  Entry Rate: 2.96%  |  Mean ROI: 28.15%
+Window 4: High-Rate    2023 → 2026  |  Entry Rate: 6.81%  |  Mean ROI:  0.91%
+```
+
+**Why 4 windows?**  
+In a single window, the mortgage rate is constant for every zip code — the model cannot learn from it.  
+With 4 windows, the same zip code appears 4 times with 4 different rate levels.  
+The model can now learn: *when the rate was low, what happened to ROI?*
+
+**ROI formula:**
+$$\text{ROI} = \frac{\text{Price}_{\text{exit}} - \text{Price}_{\text{entry}}}{\text{Price}_{\text{entry}}} \times 100\%$$
+
+---
+
+## 🔧 Features Used
+
+### Final 5 Features (no leakage, no duplicates)
+
+| Feature | Type | Purpose |
+|---|---|---|
+| `School_Count` | Original | Number of public schools in the city — community stability |
+| `Mortgage_Rate` | Original | 30-yr fixed rate at window entry — **#1 feature (65.6%)** |
+| `Log_Income` | Engineered | `log1p(Median_Income)` — corrects income right skew |
+| `Log_Price` | Engineered | `log1p(Current_Price)` — corrects price severe skew |
+| `Price_Income_Ratio` | Engineered | `Price ÷ Income` — affordability measure (#2 at 11.2%) |
+
+### Removed Features (per instructor feedback)
+
+| Feature | Reason Removed |
+|---|---|
+| `Median_Income` | Replaced by `Log_Income` — keeping both = multicollinearity |
+| `Current_Price` | Replaced by `Log_Price` — keeping both = multicollinearity |
+| `Entry_Price` | No longer needed after log transformation |
+| `Price_Momentum` | **Target leakage** — was mathematically equal to ROI/100 |
+| `Mortgage_Rate_Delta` | Removed per instructor feedback |
+
+```python
+def add_features(df):
+    df = df.copy()
+    df['Log_Income']         = np.log1p(df['Median_Income'])
+    df['Log_Price']          = np.log1p(df['Current_Price'])
+    df['Price_Income_Ratio'] = df['Current_Price'] / (df['Median_Income'] + 1)
+    # Drop originals — per instructor feedback
+    df.drop(columns=['Median_Income', 'Current_Price', 'Entry_Price'], inplace=True)
+    return df
+```
+
+---
+
+## 📈 Model Results
+
+| Model | R² Test | MAE (%) | RMSE (%) |
+|---|---|---|---|
+| **Gradient Boosting ⭐** | **0.7025** | **8.29%** | **11.15%** |
+| Random Forest | 0.6827 | 8.48% | 11.51% |
+| Ridge Regression | 0.4834 | 11.24% | 14.69% |
+| Linear Regression | 0.4834 | 11.24% | 14.69% |
+| *Old single-window baseline* | *0.1625* | *5.75%* | *—* |
+
+**R² improvement: +332%** (0.1625 → 0.7025)
+
+> **Why did MAE increase from 5.75% to 8.29%?**  
+> The old model predicted ROI in one narrow window (range ~0% to 40%).  
+> The new model predicts across 4 eras where ROI spans −30% to +80% (110 pp range).  
+> A wider target range naturally produces larger absolute errors.  
+> **R² is the correct measure of improvement** — it went from 16% to 70%.
+
+**Why Gradient Boosting wins:**  
+Gradient Boosting builds trees sequentially — each tree fixes the errors of the previous one.  
+For a dataset where the dominant signal is a directional rate trend, sequential learning outperforms averaging (Random Forest).
+
+---
+
+## ⚙️ Hyperparameter Tuning
+
+`RandomizedSearchCV` tested **20 combinations × 5-fold CV** to find optimal settings.
+
+| Parameter | Values Tested | **Best Value** |
+|---|---|---|
+| `n_estimators` | 100, 200, 500, 1000 | **500** |
+| `max_depth` | None, 10, 20, 30 | **30** |
+| `min_samples_split` | 2, 5, 10 | **5** |
+| `min_samples_leaf` | 1, 2, 4 | **2** |
+| `max_features` | sqrt, log2, None | **None (all features)** |
+| **Best CV MAE** | | **8.916%** |
+
+```python
+param_dist = {
+    'n_estimators'     : [100, 200, 500, 1000],
+    'max_depth'        : [None, 10, 20, 30],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf' : [1, 2, 4],
+    'max_features'     : ['sqrt', 'log2', None],
+}
+random_search = RandomizedSearchCV(
+    estimator=RandomForestRegressor(random_state=42),
+    param_distributions=param_dist,
+    n_iter=20, cv=5,
+    scoring='neg_mean_absolute_error',
+    random_state=42, n_jobs=-1
+)
+```
+
+---
+
+## ✅ Cross-Validation
+
+5-fold CV confirms the model is **stable and not overfitting**.
+
+| Fold | MAE (%) | R² |
+|---|---|---|
+| Fold 1 | 7.91% | 0.7364 |
+| Fold 2 | 8.14% | 0.7259 |
+| Fold 3 | 8.02% | 0.7305 |
+| Fold 4 | 8.05% | 0.7334 |
+| Fold 5 | 7.85% | 0.7397 |
+| **Mean** | **8.00% ± 0.10%** | **0.7332 ± 0.0047** |
+
+**MAE spread = only 0.29 percentage points** across all 5 folds → model performs consistently regardless of which zip codes it trains on.
+
+---
+
+## 🎯 Feature Importance
+
+After removing `Mortgage_Rate_Delta` per instructor feedback and renormalising to 100%:
 
 | Rank | Feature | Importance | Interpretation |
-| --- | --- | :---: | --- |
-| #1 | Current Property Price | 43.8% | Entry price is the single strongest predictor of future growth trajectory |
-| #2 | Median Household Income | 36.8% | Wealthier neighbourhoods show more economic resilience and sustained investment |
-| #3 | School Density | 19.4% | Acts as a *safety floor* — high school density prevents value collapse in downturns |
+|---|---|---|---|
+| **#1** | `Mortgage_Rate` | **65.6%** | Was 0% in single-window — now dominant |
+| **#2** | `Price_Income_Ratio` | **11.2%** | Affordability — undervalued markets grow more |
+| **#3** | `School_Count` | **10.4%** | Was #1 in single-window — community stability |
+| **#4** | `Log_Price` | **7.3%** | Entry price signal |
+| **#5** | `Log_Income` | **5.5%** | Neighbourhood income signal |
 
-> **The safety floor finding:** School density does not push ROI up, but it prevents it from collapsing. Areas with many schools are significantly more resilient during economic downturns.
-
----
-
-## Real-World Validation: Frederick, CO
-
-| Scenario | Income | Schools | Price | Predicted ROI | Verdict |
-| --- | :---: | :---: | :---: | :---: | --- |
-| Wealthy suburb | $150,000 | 2 | $800,000 | 13.55% | ✅ Solid |
-| School-dense hub | $75,000 | 8 | $400,000 | 4.69% | ⚠️ Caution |
-| Frederick, CO (real) | $75,000 | 12 | $142,300 | 5.01% | ⚠️ Caution |
-
-**Why is Frederick flagged despite 12 schools?**
-
-Frederick's predicted ROI of 5.01% is lower than the model's error margin of 7.24%. The real return could be anywhere from **−2.2% to +12.3%** — the prediction cannot be confidently distinguished from noise. A data-driven investor should wait for stronger signals.
+**Why School_Count dropped from #1 to #3:**  
+In the single-window model, all zip codes faced the same rate — schools were the main differentiator.  
+In the multi-window model, the rate varies widely — schools cannot compete with a 65.6% importance feature.  
+Schools still matter (10.4%) — they just operate within the larger rate environment.
 
 ---
 
-## Investment Verdict Tool
+## ⚖️ Data Imbalance
 
-Enter three numbers about any zip code to get a plain-English verdict:
+The data **is** imbalanced (confirmed by instructor). Root cause: 3 of 4 windows were boom periods.
 
-| Input | Example |
-| --- | --- |
-| Median household income | $85,000 |
-| School count | 4 |
-| Current home price | $420,000 |
-| → Predicted ROI | ~12.4% |
-| → Verdict | ✅ Solid Investment |
+| ROI Tier | Test Rows | Test MAE | Status | Root Cause |
+|---|---|---|---|---|
+| Negative (<0%) | 474 | 8.46% | Underrepresented | Mainly Window 4 only |
+| Low (0–5%) | 303 | 4.03% | **Smallest — caution** | Window 4 only |
+| Solid (5–15%) | 445 | **9.37%** | Hardest to predict | Gray zone — all 4 windows |
+| **High (>15%)** | **2,922** | 8.54% | Most reliable | **Windows 1+2+3** |
+| Overall | 4,144 | 8.29% | **9.64:1 ratio** | 3 boom windows |
 
-**Verdict thresholds:**
+**Why SMOTE does not apply:** This is a regression problem (predicting a number), not classification.  
+**Mitigation:** Per-tier MAE evaluation quantifies where predictions are most and least reliable.
 
-| Predicted ROI | Verdict |
-| --- | --- |
-| > 15% | ✅ Hidden Gem |
-| 5% – 15% | ✅ Solid Investment |
-| < 5% | ⚠️ Proceed with Caution |
+> ⚠️ Users should apply extra caution for zip codes predicted in the **Low (0–5%)** tier — only 303 test examples.  
+> The **Solid (5–15%)** tier has the highest error (9.37%) — the gray zone where many factors compete.
 
 ---
 
-## Conclusions
+## 🗺️ Real-World Validation — Frederick CO
 
-- **Price is king (43.8%)** — entry price is the strongest predictor of growth, but high price alone does not guarantee high ROI.
-- **Income stabilises value (36.8%)** — wealthy neighbourhoods show more consistent appreciation over time.
-- **Schools are a safety floor (19.4%)** — they do not guarantee high returns, but high school density significantly reduces collapse risk.
-- **The 7.24% error margin is a tool, not a flaw** — it protects investors from overconfident decisions on borderline zip codes.
-- **Hyperparameter tuning reduced MAE by ~0.3%** — modest but meaningful.
-- **Cross-validation confirmed consistency** — MAE was stable across all 5 folds (7.0–7.4%).
+Testing on Frederick, Colorado — same inputs, two different rate environments.
 
-> *This model moves real estate investing from gut feeling to data science. It does not replace local knowledge — but it gives any investor a rigorous, transparent starting point before making a major financial decision.*
+**Inputs:** Income $75,000 · 12 schools · Price $142,300
+
+| Scenario | Rate | Predicted ROI | Range (±MAE) | Verdict |
+|---|---|---|---|---|
+| **2021 entry** | 2.96% | **0.66%** | −7.63% to 8.95% | ⚠️ CAUTION — range includes negative |
+| **2023 entry** | 6.81% | **−6.95%** | −15.23% to 1.34% | ⚠️ CAUTION — range fully negative |
+
+**Swing: 7.61 percentage points from rate change alone.**  
+Same city. Same income. Same schools. Same price. Only the rate changed.
+
+```python
+def check_investment(income, schools, price, entry_price, mortgage_rate, label=''):
+    row = pd.DataFrame(
+        [[income, schools, price, entry_price, mortgage_rate]],
+        columns=['Median_Income', 'School_Count', 'Current_Price',
+                 'Entry_Price', 'Mortgage_Rate'],
+    )
+    row  = add_features(row)
+    pred = best_model.predict(row)[0]
+    low, high = pred - mae_best, pred + mae_best
+    verdict = ('HIDDEN GEM'           if pred > 15
+               else 'SOLID INVESTMENT' if pred > mae_best
+               else 'PROCEED WITH CAUTION')
+    return pred, low, high, verdict
+```
 
 ---
 
-## References
+## 📊 ROI Tier Justification
 
-1. Zillow Research. "Zillow Home Value Index (ZHVI) Time Series," 2024. [zillow.com/research/data](https://www.zillow.com/research/data/)
-2. U.S. Census Bureau. "ACS 5-Year Estimates: Median Household Income (Table B19013)," 2024. [data.census.gov](https://data.census.gov)
-3. NCES. "Common Core of Data: Public School Universe," 2024. [nces.ed.gov/ccd](https://nces.ed.gov/ccd/)
-4. L. Breiman. "Random Forests," *Machine Learning*, vol. 45, pp. 5–32, 2001.
-5. T. Hastie, R. Tibshirani, J. Friedman. *The Elements of Statistical Learning*, 2nd ed. Springer, 2009.
-6. F. Pedregosa et al. "Scikit-learn: Machine Learning in Python," *JMLR*, vol. 12, pp. 2825–2830, 2011.
+Each boundary is defined by a **financial benchmark** — not arbitrary numbers.
+
+| Tier | Boundary | Financial Benchmark | Meaning |
+|---|---|---|---|
+| **Negative** | < 0% | Zero = universal breakeven | Capital loss — home lost value |
+| **Low** | 0% – 5% | US inflation ≈ 3%/yr × 3 yrs ≈ 9% | Positive return but **lost purchasing power** in real terms |
+| **Solid** | 5% – 15% | Beats inflation; upper end ≈ Treasury bonds | Genuine wealth preservation |
+| **High** | > 15% | Long-term US stock market ≈ 7%/yr | Exceptional — real estate competing with stocks |
+
+**Example:** $200,000 home held 3 years
+- At 5%: worth $210,000 — inflation took it to $218,545 → **real loss**
+- At 15%: worth $230,000 — beats inflation and bonds → **solid gain**
 
 ---
 
-*MS Data Science · Regis University · Denver, CO*
+## 🚀 How to Run
+
+### Requirements
+
+```bash
+pip install pandas numpy scikit-learn matplotlib seaborn jupyter
+```
+
+### Run the notebook
+
+```bash
+jupyter notebook Kakshapati_Barsha_PracticumII_Final_Aligned_FIXED.ipynb
+```
+
+### Run in order — top to bottom
+
+| Cell | What it does |
+|---|---|
+| 1–4 | Load libraries and data (Zillow, Census, NCES) |
+| 5–9 | Clean and merge all 4 sources by zip code |
+| 10–15 | Build 4 multi-window dataset |
+| 16–19 | EDA — distributions, heatmap, imbalance assessment |
+| 20 | Feature engineering — `add_features()` |
+| 21–22 | Hyperparameter tuning |
+| 23 | Train 4 models + comparison table |
+| 24–25 | Data imbalance + per-tier MAE |
+| 26–27 | Feature importance chart |
+| 28 | 5-fold cross-validation |
+| 29–30 | Frederick CO real-world validation + chart |
+| 31 | Pipeline diagram |
+| 32 | Summary table |
+
+### Data files needed
+
+```
+zillow_data_clean.csv                    # Zillow ZHVI monthly prices
+ACSDT5Y2024.B19013-Data.csv             # Census income data
+ELSI_csv_export_6390920156343710189824.csv  # NCES school data
+```
+
+---
+
+## 📁 Project Structure
+
+```
+📦 Real-Estate-ROI-Prediction/
+├── 📓 Kakshapati_Barsha_PracticumII_Final_Aligned_FIXED.ipynb   # Main notebook
+├── 📄 Kakshapati_Barsha_PracticumII_Report_FINAL.tex            # IEEEtran LaTeX report
+├── 📊 PracticumII_FINAL_Complete_Slides.pptx                    # Presentation slides
+├── 📖 README.md                                                  # This file
+│
+├── 📂 data/
+│   ├── zillow_data_clean.csv
+│   ├── ACSDT5Y2024.B19013-Data.csv
+│   └── ELSI_csv_export_*.csv
+│
+└── 📂 charts/                          # Generated by notebook
+    ├── feature_importance_multiwindow.png
+    ├── per_tier_mae_evaluation.png
+    ├── correlation_multi_window.png
+    ├── roi_by_window_eda.png
+    ├── cross_validation.png
+    ├── model_comparison_new.png
+    └── output.png                      # Frederick CO validation
+```
+
+---
+
+## ✅ Instructor Feedback Addressed
+
+All 6 feedback points from Dr. Kellen Sorauf have been addressed:
+
+| # | Feedback | Resolution |
+|---|---|---|
+| 1 | Use IEEEtran LaTeX template | ✅ `\documentclass[12pt, onecolumn]{IEEEtran}` — 10 sections, 10 references |
+| 2 | Bring in interest rates | ✅ FRED rates added — 4 windows — correlation −0.687 — importance 65.6% |
+| 3 | Explain ROI calculation + historical data | ✅ Point-to-point formula documented — 4 rolling historical windows implemented |
+| 4 | Justify 4 ROI categories | ✅ Inflation / bond / stock market benchmarks used |
+| 5 | Remove original columns after calculating | ✅ `Median_Income`, `Current_Price`, `Entry_Price` dropped in `add_features()` |
+| 6 | A lot of work to do | ✅ 4 models, hyperparameter tuning, CV, multi-window, per-tier MAE, IEEEtran report |
+
+---
+
+## ⚠️ Limitations
+
+1. **Data imbalance** — 3 of 4 windows are boom periods → High tier dominates (9.64:1 ratio). Future fix: add 2015→2018 window.
+2. **Geographic scope** — 6 states only. Nationwide coverage would improve generalisability.
+3. **School count vs quality** — count used as proxy; national quality ratings not available at zip code scale.
+4. **Mortgage rate is national** — same rate for all zip codes within a window; local rate variations not captured.
+5. **Single metric ROI** — point-to-point only; does not account for rental income or transaction costs.
+
+---
+
+## 🔮 Future Work
+
+- [ ] Add 2015→2018 window to balance Low/Negative tiers
+- [ ] Expand to all 50 U.S. states
+- [ ] Add school quality ratings (GreatSchools API)
+- [ ] Add crime rates and walkability scores
+- [ ] Incorporate live market feeds for real-time prediction
+- [ ] Build mobile app delivering investor verdicts (Solid / Caution / Hidden Gem)
+- [ ] Explore LSTM models for temporal rate pattern learning
+
+---
+
+## 📚 References
+
+1. Breiman, L. (2001). *Random Forests.* Machine Learning, 45(1), 5–32.
+2. Case, K. E., & Shiller, R. J. (1989). *The Efficiency of the Market for Single-Family Homes.* The American Economic Review, 79(1), 125–137.
+3. Limsombunchai, V. (2004). *House Price Prediction: Hedonic Price Model vs. Artificial Neural Network.* NZ Agricultural and Resource Economics Society Conference.
+4. Gu, J., Zhu, M., & Jiang, L. (2020). *Housing Price Forecasting Based on Gradient Boosting.* Expert Systems with Applications, 38(4), 3383–3386.
+5. Chiarazzo, V., et al. (2014). *A Neural Network Based Model for Real Estate Price Estimation.* Transportation Research Procedia, 3, 810–817.
+6. Freddie Mac. (2024). *Primary Mortgage Market Survey (PMMS).* https://www.freddiemac.com/pmms
+7. Pedregosa, F., et al. (2011). *Scikit-learn: Machine Learning in Python.* JMLR, 12, 2825–2830.
+8. Zillow Research. (2024). *Zillow Home Value Index (ZHVI).* https://www.zillow.com/research/data/
+9. U.S. Census Bureau. (2024). *ACS 5-Year Estimates: Median Household Income.* https://data.census.gov
+10. National Center for Education Statistics. (2024). *Common Core of Data.* https://nces.ed.gov/ccd/
+
+---
+
+## 👩‍💻 Author
+
+**Barsha Kakshapati**  
+MS Data Science | Regis University | Denver, CO  
+📧 bkakshapati@regis.edu
+
+---
+
+*Practicum II — Data Science Program — Regis University — June 2026*
