@@ -1,0 +1,25 @@
+# ─────────────────────────────────────────────────────────────────
+# requirements.txt
+# Predicting Real Estate ROI — Barsha Kakshapati — Regis University
+# Python 3.9+
+# Install: pip install -r requirements.txt
+# ─────────────────────────────────────────────────────────────────
+
+# ── Core data manipulation ────────────────────────────────────────
+pandas>=1.5.0
+numpy>=1.23.0
+
+# ── Machine learning ──────────────────────────────────────────────
+scikit-learn>=1.2.0
+
+# ── Visualization ─────────────────────────────────────────────────
+matplotlib>=3.6.0
+seaborn>=0.12.0
+
+# ── Jupyter notebook ──────────────────────────────────────────────
+jupyter>=1.0.0
+notebook>=6.5.0
+ipykernel>=6.0.0
+
+# ── Utilities ─────────────────────────────────────────────────────
+scipy>=1.9.0
