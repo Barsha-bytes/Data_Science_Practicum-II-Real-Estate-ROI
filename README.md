@@ -363,20 +363,7 @@ ELSI_csv_export_6390920156343710189824.csv  # NCES school data
     └── output.png                      # Frederick CO validation
 ```
 
----
 
-##  Instructor Feedback Addressed
-
-All 6 feedback points from Dr. Kellen Sorauf have been addressed:
-
-| # | Feedback | Resolution |
-|---|---|---|
-| 1 | Use IEEEtran LaTeX template |  `\documentclass[12pt, onecolumn]{IEEEtran}` — 10 sections, 10 references |
-| 2 | Bring in interest rates |  FRED rates added — 4 windows — correlation −0.687 — importance 65.6% |
-| 3 | Explain ROI calculation + historical data |  Point-to-point formula documented — 4 rolling historical windows implemented |
-| 4 | Justify 4 ROI categories |  Inflation / bond / stock market benchmarks used |
-| 5 | Remove original columns after calculating |  `Median_Income`, `Current_Price`, `Entry_Price` dropped in `add_features()` |
-| 6 | A lot of work to do |  4 models, hyperparameter tuning, CV, multi-window, per-tier MAE, IEEEtran report |
 
 ---
 
@@ -390,15 +377,6 @@ All 6 feedback points from Dr. Kellen Sorauf have been addressed:
 
 ---
 
-##  Future Work
-
-- [ ] Add 2015→2018 window to balance Low/Negative tiers
-- [ ] Expand to all 50 U.S. states
-- [ ] Add school quality ratings (GreatSchools API)
-- [ ] Add crime rates and walkability scores
-- [ ] Incorporate live market feeds for real-time prediction
-- [ ] Build mobile app delivering investor verdicts (Solid / Caution / Hidden Gem)
-- [ ] Explore LSTM models for temporal rate pattern learning
 
 ---
 
@@ -421,7 +399,7 @@ All 6 feedback points from Dr. Kellen Sorauf have been addressed:
 
 **Barsha Kakshapati**  
 MS Data Science | Regis University | Denver, CO  
-📧 bkakshapati@regis.edu
+bkakshapati@regis.edu
 
 ---
 
